@@ -13,7 +13,7 @@ for the system.  The Arduino or Photon handles the temperature sensing and
 PID control of a heater or cooler.  A serial link joins the two parts of
 the system together.
 
-This work of fuscus adds support for using a TCP connection instead of 
+This fork of fuscus adds support for using a TCP connection instead of 
 a virtual serial port (modelled on brewpi-esp8266 by thorrak). It also
 adds MQTT support as an alternative to GPIO, giving the option of controlling
 relays by publishing to MQTT topics and receiving temperature readings
