@@ -29,6 +29,7 @@ import door
 import lcd
 import piLink
 import relay
+import mqttRelay
 import rotaryEncoder
 import tempControl
 
@@ -149,6 +150,15 @@ invert_cold = config['relay'].getboolean('invert_cold')
 print("Hot relay on pin %s (%s)" % (relay_HOT, 'inverted' if invert_hot else 'not inverted'))
 print("Cold relay on pin %s (%s)" % (relay_COLD, 'inverted' if invert_cold else 'not inverted'))
 
+# MQTT options
+mqtt_broker = config['mqtt'].get('broker')
+mqtt_hot_topic = config['mqtt'].get('hot_topic')
+mqtt_hot_message_ON = config['config'].get('hot_message_on')
+mqtt_hot_message_OFF = config['config'].get('hot_message_off')
+mqtt_cold_topic = config['mqtt'].get('cold_topic')
+mqtt_cold_message_ON = config['config'].get('cold_message_on')
+mqtt_cold_message_OFF = config['config'].get('cold_message_off')
+
 # One-wire bus (implemented by external system) (1 GPIO + 3.3V + GND)
 one_wire = 7  # This number is for reference only
 
@@ -217,8 +227,16 @@ else:
 
 encoder.start()
 
-heater = relay.relay(relay_HOT, invert=invert_hot)
-cooler = relay.relay(relay_COLD, invert=invert_cold)
+if relay_HOT is not None:
+    heater = relay.relay(relay_HOT, invert=invert_hot)
+else:
+    heater = mqttRelay.mqttRelay(mqtt_broker, mqtt_hot_topic, mqtt_hot_message_ON, mqtt_hot_message_OFF)
+
+if relay_COLD is not None:
+    cooler = relay.relay(relay_COLD, invert=invert_cold)
+else:
+    cooler = mqttRelay.mqttRelay(mqtt_broker, mqtt_cold_topic, mqtt_cold_message_ON, mqtt_cold_message_OFF)
+
 
 
 # Nokia LCD has 17 chars by 6 lines, but original display and web display

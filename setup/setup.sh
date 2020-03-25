@@ -101,7 +101,7 @@ fi
 # python-smbus, python3-smbus, and i2c-tools to enable the use of certain LCD screens
 sudo apt-get install -y python3 python3-pip git-core python-smbus python3-smbus i2c-tools || die
 echo -e "\n***** Installing/updating required python packages via pip3... *****\n"
-sudo pip3 install spidev RPi.GPIO pyyaml --upgrade
+sudo pip3 install spidev RPi.GPIO pyyaml paho-mqtt --upgrade
 #sudo pip install pyserial psutil simplejson configobj gitpython --upgrade
 echo -e "\n***** Done processing Fuscus dependencies *****\n"
 
@@ -279,7 +279,7 @@ chown -R fuscus:fuscus "$installPath"||die
 ############
 echo -e "\n***** Downloading most recent Fuscus codebase... *****"
 cd "$installPath"
-sudo -u fuscus git clone https://github.com/andrewerrington/fuscus "$installPath"||die
+sudo -u fuscus git clone https://github.com/HenrikHalvorsenLawo/fuscus "$installPath"||die
 #cd "$webPath"
 #sudo -u www-data git clone https://github.com/BrewPi/brewpi-www "$webPath"||die
 
