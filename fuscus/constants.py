@@ -36,7 +36,7 @@ import tempControl
 running_on_pi = True
 try:
     import RPi.GPIO as GPIO
-except ImportError:
+except (ImportError, RuntimeError):
     running_on_pi = False
     print("Unable to import GPIO library, assume we're not running on a Pi")
 
@@ -160,11 +160,11 @@ print("Cold relay on pin %s (%s)" % (relay_COLD, 'inverted' if invert_cold else 
 # MQTT options
 mqtt_broker = config['mqtt'].get('broker')
 mqtt_hot_topic = config['mqtt'].get('hot_topic')
-mqtt_hot_message_ON = config['config'].get('hot_message_on')
-mqtt_hot_message_OFF = config['config'].get('hot_message_off')
+mqtt_hot_message_ON = config['mqtt'].get('hot_message_on')
+mqtt_hot_message_OFF = config['mqtt'].get('hot_message_off')
 mqtt_cold_topic = config['mqtt'].get('cold_topic')
-mqtt_cold_message_ON = config['config'].get('cold_message_on')
-mqtt_cold_message_OFF = config['config'].get('cold_message_off')
+mqtt_cold_message_ON = config['mqtt'].get('cold_message_on')
+mqtt_cold_message_OFF = config['mqtt'].get('cold_message_off')
 
 # One-wire bus (implemented by external system) (1 GPIO + 3.3V + GND)
 one_wire = 7  # This number is for reference only
@@ -225,15 +225,14 @@ BACKLIGHT_BRIGHT_LEVEL = 50
 BACKLIGHT_DIM_LEVEL = 20
 
 # Global objects for our hardware devices
-if running_on_pi:
-    DOOR = door.door(door_pin, door_open_state)
 
-    if rotary is not None:
-        encoder = rotaryEncoder.rotaryEncoder(rotary_A, rotary_B, rotary_PB)
-    else:
-        encoder = rotaryEncoder.rotaryEncoder(0, 0, 0, dummy=True)
+DOOR = door.door(door_pin, door_open_state)
+if rotary is not None:
+    encoder = rotaryEncoder.rotaryEncoder(rotary_A, rotary_B, rotary_PB)
+else:
+    encoder = rotaryEncoder.rotaryEncoder(0, 0, 0, dummy=True)
 
-    encoder.start()
+encoder.start()
 
 if relay_HOT is not None and running_on_pi:
     heater = relay.relay(relay_HOT, invert=invert_hot)
@@ -263,6 +262,6 @@ tempControl.ambientSensor.calibrationOffset = ambientCalibrationOffset
 
 eepromManager = EepromManager.eepromManager(tempControl=tempControl)
 
-piLink = piLink.piLink(tempControl=tempControl, path=config['port'].get('path'), eepromManager=eepromManager)
+piLink = piLink.piLink(tempControl=tempControl, port=port, eepromManager=eepromManager)
 
 menu = Menu.Menu(encoder=encoder, tempControl=tempControl, piLink=piLink)

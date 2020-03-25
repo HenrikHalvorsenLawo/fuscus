@@ -48,6 +48,8 @@ def init():
 
 
 def showStartupPage(port_name):
+    # Temporary fix to bypass
+    return 0
     LCD.clear()
     LCD.println("Fuscus Controller")
     LCD.println("  version 0.1.0")
@@ -77,6 +79,7 @@ def showStartupPage(port_name):
 
 
 def showControllerPage():
+    return
     LCD.clear()
     display.printStationaryText()
     display.printState()
@@ -84,6 +87,7 @@ def showControllerPage():
 
 
 def update():
+    return 
     # update the lcd for the chamber being displayed
     display.printState()
     display.printAllTemperatures()

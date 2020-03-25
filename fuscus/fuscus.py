@@ -108,15 +108,15 @@ def loop():
                 piLink.printTemperatures()  # add a data point at every state transition
 
             tempControl.updateOutputs()
-            ui.update()
+            #ui.update()
 
             # We have two lines free at the bottom of the display.
 
             # Show local time YYYY-MM-DD hh:mm (16 characters.)
-            ui.LCD.printat(0, 5, time.strftime("%Y-%m-%d %H:%M"))
+            #ui.LCD.printat(0, 5, time.strftime("%Y-%m-%d %H:%M"))
 
             # Last character is a spinner to show we haven't crashed
-            ui.LCD.print("%s" % spinner[spinindex])
+            #ui.LCD.print("%s" % spinner[spinindex])
             spinindex = (spinindex + 1) % 4
 
         # listen for incoming serial connections while waiting to update
@@ -125,8 +125,8 @@ def loop():
         time.sleep(0.05)  # Don't hog the processor
 
     piLink.cleanup()
-    ui.LCD.printat(0, 5, "Shutting down.   ")
-    ui.update()
+    #ui.LCD.printat(0, 5, "Shutting down.   ")
+    #ui.update()
 
 
 if __name__ == "__main__":
@@ -152,6 +152,9 @@ if __name__ == "__main__":
     tempControl.ambientSensor.join()
     tempControl.fridgeSensor.join()
     encoder.join()
-    GPIO.cleanup()
+    try:
+        GPIO.cleanup()
+    except:
+        print("No GPIO to clean")
     print("Finished")
     logging.info('Finished')

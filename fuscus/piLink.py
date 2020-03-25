@@ -45,12 +45,12 @@ STR_FMT_SET_TO = " set to %s "
 
 
 class piLink:
-    def __init__(self, tempControl, eepromManager):
+    def __init__(self, tempControl, port, eepromManager):
         # Set up a pty to accept serial input as if we are an Arduino
         # FIXME: Make this a socket interface.  The main brewpi code can send to a socket.
         # use port 25518 (beer 2 5 5 18)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind("", port)
+        self.socket.bind(("", port))
         self.socket.listen()
         self.socket.settimeout(0.5)
 
@@ -68,9 +68,10 @@ class piLink:
         self.socket.close()
 
     def acceptConnection(self):
-        incoming_ready, write, err  = select.select([self.socket], [], [])
+        incoming_ready, write, err  = select.select([self.socket], [], [], 1)
         if self.connection is None and incoming_ready:
             self.connection, addr = self.socket.accept()
+            print('Connection established from %s' % str(addr))
             return True
         else:
             return False
@@ -81,11 +82,16 @@ class piLink:
         """
         # read a byte and append it to the buffer
         read_bytes = None
+
+        if self.connection is None:
+            return ''
+
         try:
-            read_bytes = self.socket.recv(1)
+            read_bytes = self.connection.recv(4096)
         except socket.timeout:
             return ''
         except socket.error:
+            print(socket.error)
             self.socket.close()
             self.connection = None
             return ''
@@ -100,9 +106,7 @@ class piLink:
     def receive(self):
 
         if self.connection is None:
-            if self.acceptConnection() is False:
-                print("No incoming connection yet")
-                return
+            self.acceptConnection()
 
         inByte = self.updateBuffer()
 
@@ -157,12 +161,12 @@ class piLink:
                 # BREWPI_LOG_MESSAGES_VERSION); // l:
                 print("Version request.  Sending version.")
                 vers = {"v": "0.2.11", "n": "fuscus", "s": 0, "y": 0, "b": "?", "l": "1"}
-                self.f.write(bytes('N:' + json.dumps(vers) + '\r\n', 'UTF-8'))
+                self.connection.sendall(bytes('N:' + json.dumps(vers) + '\r\n', 'UTF-8'))
 
             elif inByte == 'l':  # Display content requested
                 print("LCD content request.")
                 # Brewpi web interface has only 4 lines, so we don't send the whole buffer
-                self.f.write(bytes('L:' + json.dumps(ui.LCD.buffer[:4]) + '\r\n', 'UTF-8'))
+                self.connection.sendall(bytes('L:' + json.dumps(ui.LCD.buffer[:4]) + '\r\n', 'UTF-8'))
 
             elif inByte == 'j':  # Receive settings as json
                 print("Incoming JSON settings.")
@@ -214,6 +218,9 @@ class piLink:
 
     def printTemperaturesJSON(self, beerAnnotation, fridgeAnnotation):
         temps = {}
+
+        if self.connection is None:
+            return
 
         # For reference (COMPACT_SERIAL codes)
         # define JSON_BEER_TEMP  "bt"
@@ -279,7 +286,7 @@ class piLink:
 
         temps['State'] = self.tempControl.getState()
 
-        self.f.write(bytes('T:' + json.dumps(temps) + '\r\n', 'UTF-8'))
+        self.connection.sendall(bytes('T:' + json.dumps(temps) + '\r\n', 'UTF-8'))
 
     def printBeerAnnotation(self, annotation):
         self.printTemperaturesJSON(annotation, None)
@@ -314,6 +321,8 @@ class piLink:
     # Instead we have to do it the hard way
 
     def sendControlSettings(self, cs):
+        if self.connection is None:
+            return
         d = vars(cs).copy()
         # Fix up the key names that are not the same
         d[JSONKEY_beerSetting] = self.tempControl.temp_convert_to_external(d.pop('beerSetting'))
@@ -321,9 +330,11 @@ class piLink:
         d[JSONKEY_heatEstimator] = d.pop('heatEstimator')
         d[JSONKEY_coolEstimator] = d.pop('coolEstimator')
 
-        self.f.write(bytes('S:' + json.dumps(d) + '\r\n', 'UTF-8'))
+        self.connection.sendall(bytes('S:' + json.dumps(d) + '\r\n', 'UTF-8'))
 
     def sendControlConstants(self, cc):
+        if self.connection is None:
+            return
         d = vars(cc).copy()
         # Fix up the key names that are not the same
         d[JSONKEY_tempSettingMin] = self.tempControl.temp_convert_to_external(d.pop('tempSettingMin'))
@@ -348,16 +359,18 @@ class piLink:
         d[JSONKEY_lightAsHeater] = d.pop('lightAsHeater')
         d[JSONKEY_rotaryHalfSteps] = d.pop('rotaryHalfSteps')
 
-        self.f.write(bytes('C:' + json.dumps(d) + '\r\n', 'UTF-8'))
+        self.connection.sendall(bytes('C:' + json.dumps(d) + '\r\n', 'UTF-8'))
 
     def sendControlVariables(self, cv):
+        if self.connection is None:
+            return
         d = vars(cv).copy()
         # Fix up the key names that are not the same
         d[JSONKEY_estimatedPeak] = self.tempControl.temp_convert_to_external(d.pop('estimatedPeak'))
         d[JSONKEY_negPeakEstimate] = self.tempControl.temp_convert_to_external(d.pop('negPeakEstimate'))
         d[JSONKEY_posPeakEstimate] = self.tempControl.temp_convert_to_external(d.pop('posPeakEstimate'))
 
-        self.f.write(bytes('V:' + json.dumps(d) + '\r\n', 'UTF-8'))
+        self.connection.sendall(bytes('V:' + json.dumps(d) + '\r\n', 'UTF-8'))
 
     def receiveControlConstants():
         # This does not seem to be defined in the original source

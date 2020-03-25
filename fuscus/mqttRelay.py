@@ -32,9 +32,8 @@ class mqttRelay:
         self.state = bool(init)  # We can read this class variable to get
         # the current state
 
-        # Configure the I/O pin and set its initial state
         self._connection = mqtt.Client()
-        self._connection.connect(broker)
+        self._connection.connect(str(broker))
         self._connection.loop_start()
         self._connection.publish(self._topic, self._message_on if (self.state ^ self.inverted) else self._message_off, 0, True)
 

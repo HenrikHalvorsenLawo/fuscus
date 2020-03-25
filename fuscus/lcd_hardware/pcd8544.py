@@ -31,10 +31,10 @@ import time
 
 try:
     import RPi.GPIO as GPIO
+    GPIO.setmode(GPIO.BOARD)
 except (ImportError, RuntimeError):
     print("Unable to import GPIO library, assume we're not running on a Pi")
 
-GPIO.setmode(GPIO.BOARD)
 
 import spidev
 from font4x7 import FONT, PIXELS_PER_COLUMN
