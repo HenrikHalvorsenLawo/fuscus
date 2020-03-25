@@ -13,6 +13,13 @@ for the system.  The Arduino or Photon handles the temperature sensing and
 PID control of a heater or cooler.  A serial link joins the two parts of
 the system together.
 
+This work of fuscus adds support for using a TCP connection instead of 
+a virtual serial port (modelled on brewpi-esp8266 by thorrak). It also
+adds MQTT support as an alternative to GPIO, giving the option of controlling
+relays by publishing to MQTT topics and receiving temperature readings
+by subscribing to other MQTT topics. A combination of GPIO and MQTT should
+also work, but hasn ot been tested.
+
 There are very good reasons for allocating a microcontroller to the
 task of heating and cooling control.  The primary one being that they
 are very reliable.  If the Raspberry Pi should crash the microcontroller

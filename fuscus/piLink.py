@@ -3,6 +3,7 @@
 #
 # Copyright 2012-2013 BrewPi/Elco Jacobs.
 # Copyright 2015 Andrew Errington
+# Copyright 2020 Henrik Halvorsen
 #
 # This file is part of BrewPi.
 # 
@@ -32,8 +33,6 @@ import termios
 import datetime
 import socket
 
-import ui
-from constants import *
 from JsonKeys import *
 
 STR_WEB_INTERFACE = "in web interface"
@@ -45,7 +44,7 @@ STR_FMT_SET_TO = " set to %s "
 
 
 class piLink:
-    def __init__(self, tempControl, port, eepromManager):
+    def __init__(self, tempControl, port, eepromManager, lcd):
         # Set up a pty to accept serial input as if we are an Arduino
         # FIXME: Make this a socket interface.  The main brewpi code can send to a socket.
         # use port 25518 (beer 2 5 5 18)
@@ -55,16 +54,21 @@ class piLink:
         self.socket.settimeout(0.5)
 
         print("Listening on '%s'" % (port))
-        self.portName = str(port)
+        self.portName = ("TCP: %s" % str(port))
         self.buf = ''
         self.connection = None
 
         self.tempControl = tempControl
         self.tempControl.piLink = self  # FIXME is this good practice?
         self.eepromManager = eepromManager
+        self.LCD = lcd
 
     def cleanup(self):
         # Close the socket
+        try:
+            self.connection.close()
+        except:
+            pass
         self.socket.close()
 
     def acceptConnection(self):
@@ -87,12 +91,17 @@ class piLink:
             return ''
 
         try:
-            read_bytes = self.connection.recv(4096)
+            read_bytes = self.connection.recv(1)
         except socket.timeout:
             return ''
         except socket.error:
+            read_bytes = b''
             print(socket.error)
-            self.socket.close()
+            self.connection.close()
+            self.connection = None
+        
+        if read_bytes is None or read_bytes == b'':
+            self.connection.close()
             self.connection = None
             return ''
 
@@ -165,8 +174,9 @@ class piLink:
 
             elif inByte == 'l':  # Display content requested
                 print("LCD content request.")
+                #print(json.dumps(self.LCD.buffer[:4]))
                 # Brewpi web interface has only 4 lines, so we don't send the whole buffer
-                self.connection.sendall(bytes('L:' + json.dumps(ui.LCD.buffer[:4]) + '\r\n', 'UTF-8'))
+                self.connection.sendall(bytes('L:' + json.dumps(self.LCD.buffer[:4]) + '\r\n', 'UTF-8'))
 
             elif inByte == 'j':  # Receive settings as json
                 print("Incoming JSON settings.")
@@ -372,7 +382,7 @@ class piLink:
 
         self.connection.sendall(bytes('V:' + json.dumps(d) + '\r\n', 'UTF-8'))
 
-    def receiveControlConstants():
+    def receiveControlConstants(self):
         # This does not seem to be defined in the original source
         pass
 

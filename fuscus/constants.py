@@ -3,6 +3,7 @@
 
 #
 # Copyright 2015 Andrew Errington
+# Copyright 2020 Henrik Halvorsen
 #
 # This file is part of BrewPi.
 #
@@ -27,6 +28,7 @@ import EepromManager
 import Menu
 import door
 import lcd
+import ui
 import piLink
 import relay
 import mqttRelay
@@ -70,7 +72,7 @@ else:
 
 # Port for TCP/IP control FIXME: not implemented yet
 port = config['network'].getint('port', 25518)
-print("Network port: %s (not implemented)" % port)
+print("Network port: %s" % port)
 
 # GPIO pins (board numbering: GPIO.setmode(GPIO.BOARD))
 
@@ -150,21 +152,24 @@ else:
 buzzer_pin = 15
 
 # Relay board (2x 240Vac 10A relays) (2 GPIO + 3.3V + 5V + GND)
-relay_HOT = config['relay'].getint('hot')
+relay_HOT = config['relay'].getint('hot', -1)
 invert_hot = config['relay'].getboolean('invert_hot')
-relay_COLD = config['relay'].getint('cold')
+relay_COLD = config['relay'].getint('cold', -1)
 invert_cold = config['relay'].getboolean('invert_cold')
 print("Hot relay on pin %s (%s)" % (relay_HOT, 'inverted' if invert_hot else 'not inverted'))
 print("Cold relay on pin %s (%s)" % (relay_COLD, 'inverted' if invert_cold else 'not inverted'))
 
 # MQTT options
-mqtt_broker = config['mqtt'].get('broker')
-mqtt_hot_topic = config['mqtt'].get('hot_topic')
-mqtt_hot_message_ON = config['mqtt'].get('hot_message_on')
-mqtt_hot_message_OFF = config['mqtt'].get('hot_message_off')
-mqtt_cold_topic = config['mqtt'].get('cold_topic')
-mqtt_cold_message_ON = config['mqtt'].get('cold_message_on')
-mqtt_cold_message_OFF = config['mqtt'].get('cold_message_off')
+MQTT_broker = config['mqtt'].get('broker')
+MQTT_hot_topic = config['mqtt'].get('hot_topic')
+MQTT_hot_message_ON = config['mqtt'].get('hot_message_on')
+MQTT_hot_message_OFF = config['mqtt'].get('hot_message_off')
+MQTT_cold_topic = config['mqtt'].get('cold_topic')
+MQTT_cold_message_ON = config['mqtt'].get('cold_message_on')
+MQTT_cold_message_OFF = config['mqtt'].get('cold_message_off')
+MQTT_ambient = config['mqtt'].get('ambient_topic')
+MQTT_fridge = config['mqtt'].get('fridge_topic')
+MQTT_beer = config['mqtt'].get('beer_topic')
 
 # One-wire bus (implemented by external system) (1 GPIO + 3.3V + GND)
 one_wire = 7  # This number is for reference only
@@ -178,8 +183,8 @@ fridgeCalibrationOffset = 0.0
 beerCalibrationOffset = 0.0
 ambientCalibrationOffset = 0.0
 
-if not (ID_fridge):
-    raise ValueError("1-wire address of fridge not specified in 'fuscus.ini'.")
+if ID_fridge == '':
+    ID_fridge = None
 
 if ID_beer == '':
     ID_beer = None
@@ -227,6 +232,7 @@ BACKLIGHT_DIM_LEVEL = 20
 # Global objects for our hardware devices
 
 DOOR = door.door(door_pin, door_open_state)
+encoder = None
 if rotary is not None:
     encoder = rotaryEncoder.rotaryEncoder(rotary_A, rotary_B, rotary_PB)
 else:
@@ -234,25 +240,26 @@ else:
 
 encoder.start()
 
-if relay_HOT is not None and running_on_pi:
+if relay_HOT >= 0:
     heater = relay.relay(relay_HOT, invert=invert_hot)
 else:
-    heater = mqttRelay.mqttRelay(mqtt_broker, mqtt_hot_topic, mqtt_hot_message_ON, mqtt_hot_message_OFF)
+    heater = mqttRelay.mqttRelay(MQTT_broker, MQTT_hot_topic, MQTT_hot_message_ON, MQTT_hot_message_OFF)
 
-if relay_COLD is not None and running_on_pi:
+if relay_COLD >= 0:
     cooler = relay.relay(relay_COLD, invert=invert_cold)
 else:
-    cooler = mqttRelay.mqttRelay(mqtt_broker, mqtt_cold_topic, mqtt_cold_message_ON, mqtt_cold_message_OFF)
+    cooler = mqttRelay.mqttRelay(MQTT_broker, MQTT_cold_topic, MQTT_cold_message_ON, MQTT_cold_message_OFF)
 
 
 
 # Nokia LCD has 17 chars by 6 lines, but original display and web display
 # show 20 chars by 4 lines, so make a buffer at least that big.
-if running_on_pi:
-    LCD = lcd.lcd(lines=6, chars=20, hardware=LCD_hardware)
+LCD = lcd.lcd(lines=6, chars=20, hardware=LCD_hardware)
 
-tempControl = tempControl.tempController(ID_fridge, ID_beer, ID_ambient,
+tempControl = tempControl.tempController(ID_fridge, ID_beer, ID_ambient, MQTT_broker, MQTT_fridge, MQTT_beer, MQTT_ambient,
                                          cooler=cooler, heater=heater, door=DOOR)
+
+menu = Menu.Menu(encoder=encoder, tempControl=tempControl, piLink=piLink)
 
 # Set the temperature calibration offsets (if available)
 # FIXME - This should be part of deviceManager & saved to/loaded from the eeprom
@@ -262,6 +269,5 @@ tempControl.ambientSensor.calibrationOffset = ambientCalibrationOffset
 
 eepromManager = EepromManager.eepromManager(tempControl=tempControl)
 
-piLink = piLink.piLink(tempControl=tempControl, port=port, eepromManager=eepromManager)
+piLink = piLink.piLink(tempControl=tempControl, port=port, eepromManager=eepromManager, lcd=LCD)
 
-menu = Menu.Menu(encoder=encoder, tempControl=tempControl, piLink=piLink)

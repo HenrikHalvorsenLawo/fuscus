@@ -3,6 +3,7 @@
 #
 # Copyright 2012-2013 BrewPi/Elco Jacobs.
 # Copyright 2015 Andrew Errington
+# Copyright 2020 Henrik Halvorsen
 #
 # This file is part of BrewPi.
 # 
@@ -22,7 +23,6 @@
 
 import displayLCD as display
 
-from constants import *
 
 # Not sure where to put this at the moment.  It's a utility
 # to get our IP address.
@@ -31,6 +31,7 @@ import socket
 import fcntl
 import struct
 
+from constants import *
 
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -48,8 +49,6 @@ def init():
 
 
 def showStartupPage(port_name):
-    # Temporary fix to bypass
-    return 0
     LCD.clear()
     LCD.println("Fuscus Controller")
     LCD.println("  version 0.1.0")

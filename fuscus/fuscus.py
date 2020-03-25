@@ -8,6 +8,7 @@ logging.basicConfig(filename='fuscus.log', level=logging.DEBUG)
 #
 # Copyright 2012-2013 BrewPi/Elco Jacobs.
 # Copyright 2015 Andrew Errington
+# Copyright 2020 Henrik Halvorsen
 #
 # This file is part of BrewPi.
 # 
@@ -28,13 +29,13 @@ logging.basicConfig(filename='fuscus.log', level=logging.DEBUG)
 
 import time
 import signal
+import ui
+import displayLCD as display
 
 import AppConfigDefault  # FIXME is this needed?
 
 # import piLink
 # piLink = piLink.piLink()
-
-import ui
 
 # global class objects static and defined in constants.py
 # instantiate and configure the sensors, actuators and controllers we want to use
@@ -45,7 +46,7 @@ keepRunning = True
 
 
 # ValueActuator alarm;
-# UI ui;
+# UI UI;
 
 
 def killhandle(signum, frame):
@@ -62,7 +63,6 @@ def killhandle(signum, frame):
 def setup():
     # resetEeprom = platform_init()	# Not needed for Fuscus - This initialzies the eeprom access
     # eepromManager.init()	# Not needed for Fuscus - This checks the eeprom size on Arduino to ensure validity
-    # ui.init()
     # f,portName=piLink.init()
     print("started")
     logging.debug("started")
@@ -71,10 +71,10 @@ def setup():
     # This loads the settings if saved (and the defaults, if not)
     eepromManager.applySettings()  # NOTE - This replaces settingsManager.loadSettings()
 
-    start = time.time()
-    delay = ui.showStartupPage(piLink.portName)
-    while (time.time() - start <= delay):
-        ui.ticks()
+    #start = time.time()
+    #delay = ui.showStartupPage(piLink.portName)
+    #while (time.time() - start <= delay):
+    #    ui.ticks()
 
     ui.showControllerPage()
 
@@ -92,7 +92,7 @@ def loop():
     spinindex = 0
 
     while keepRunning:
-        ui.ticks()
+        #ui.ticks()
         if (time.time() - lastUpdate >= 1.0):  # update settings every second
             # round to nearest 1 second boundary to keep in sync with real time
             lastUpdate = round(time.time())
@@ -108,16 +108,19 @@ def loop():
                 piLink.printTemperatures()  # add a data point at every state transition
 
             tempControl.updateOutputs()
-            #ui.update()
+            ui.update()
 
             # We have two lines free at the bottom of the display.
 
             # Show local time YYYY-MM-DD hh:mm (16 characters.)
-            #ui.LCD.printat(0, 5, time.strftime("%Y-%m-%d %H:%M"))
+            display.printStationaryText()
+            display.printMode()
+            display.printState()
+            display.printAllTemperatures()
 
             # Last character is a spinner to show we haven't crashed
-            #ui.LCD.print("%s" % spinner[spinindex])
-            spinindex = (spinindex + 1) % 4
+            #LCD.print("%s" % spinner[spinindex])
+            #spinindex = (spinindex + 1) % 4
 
         # listen for incoming serial connections while waiting to update
         piLink.receive()
@@ -125,8 +128,8 @@ def loop():
         time.sleep(0.05)  # Don't hog the processor
 
     piLink.cleanup()
-    #ui.LCD.printat(0, 5, "Shutting down.   ")
-    #ui.update()
+    LCD.printat(0, 5, "Shutting down.   ")
+    ui.update()
 
 
 if __name__ == "__main__":

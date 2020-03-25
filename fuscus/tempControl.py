@@ -3,6 +3,7 @@
 #
 # Copyright 2012-2013 BrewPi/Elco Jacobs.
 # Copyright 2015 Andrew Errington
+# Copyright 2020 Henrik Halvorsen
 #
 # This file is part of BrewPi.
 # 
@@ -26,6 +27,7 @@ import pickle
 import ticks
 
 import tempSensor
+import mqttTempSensor
 
 import os.path
 
@@ -125,7 +127,7 @@ class ControlConstants:
 
 
 class tempController:
-    def __init__(self, ID_fridge, ID_beer=None, ID_ambient=None, cooler=None, heater=None, door=None):
+    def __init__(self, ID_fridge=None, ID_beer=None, ID_ambient=None, MQTT_broker=None, MQTT_fridge=None, MQTT_beer=None, MQTT_ambient=None, cooler=None, heater=None, door=None):
         # We must have at least a fridge sensor
 
         self.cs = ControlSettings()
@@ -159,9 +161,20 @@ class tempController:
         self.beerSensor = tempSensor.sensor(ID_beer)
 
         # if (self.fridgeSensor==None):
-        self.fridgeSensor = tempSensor.sensor(ID_fridge)
+        if ID_fridge is not None:
+            self.fridgeSensor = tempSensor.sensor(ID_fridge)
+        else:
+            self.fridgeSensor = mqttTempSensor.sensor(MQTT_broker, MQTT_fridge)
 
-        self.ambientSensor = tempSensor.sensor(ID_ambient)
+        if ID_beer is not None:
+            self.beerSensor = tempSensor.sensor(ID_beer)
+        else:
+            self.beerSensor = mqttTempSensor.sensor(MQTT_broker, MQTT_beer)
+
+        if ID_ambient is not None:
+            self.ambientSensor = tempSensor.sensor(ID_ambient)
+        else:
+            self.ambientSensor = mqttTempSensor.sensor(MQTT_broker, MQTT_ambient)
 
         self.beerSensor.init()
         self.fridgeSensor.init()

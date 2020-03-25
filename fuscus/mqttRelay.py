@@ -3,6 +3,7 @@
 
 #
 # Copyright 2015 Andrew Errington
+# Copyright 2020 Henrik Halvorsen
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +25,7 @@ import paho.mqtt.client as mqtt
 class mqttRelay:
     """Simple class for controlling a remote relay via MQTT (such as a Tasmota device)."""
     def __init__(self, broker, topic, message_on="ON", message_off="OFF", invert=False, init=False):
-        self._topic = topic  # GPIO pin number (board numbering)
+        self._topic = topic  
         self._message_on = message_on
         self._message_off = message_off
         self.inverted = bool(invert)  # Is the hardware active low (True)
