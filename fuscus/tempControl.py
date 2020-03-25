@@ -615,12 +615,12 @@ class tempController:
 
     def storeConstants(self):
         """Write variables in cc class to EEPROM (file)."""
-        with open('EEPROM.cc', 'wb') as f:
+        with open('./config/EEPROM.cc', 'wb') as f:
             pickle.dump(vars(self.cc), f, pickle.HIGHEST_PROTOCOL)
 
     def loadConstants(self):
         """Read variables in cc class from EEPROM (file)."""
-        with open('EEPROM.cc', 'rb') as f:
+        with open('./config/EEPROM.cc', 'rb') as f:
             data = pickle.load(f)
 
         self.cc.__dict__.update(data)
@@ -630,9 +630,9 @@ class tempController:
     def hasStoredSettings(self):
         # This is a departure from the Arduino implementation - This is designed to circumvent the hack that is used
         # in eepromManager to determine if we have settings to load.
-        if not os.path.isfile('EEPROM.cc'):
+        if not os.path.isfile('./config/EEPROM.cc'):
             return False
-        elif not os.path.isfile('EEPROM.cs'):
+        elif not os.path.isfile('./config/EEPROM.cs'):
             return False
         else:
             return True
@@ -640,20 +640,20 @@ class tempController:
     def zapStoredSettings(self):
         # Again - this is a departure from the Arduino implementation. Only moving this here (rather than in the
         # eepromManager class) because the definition of the file names is here
-        if os.path.isfile('EEPROM.cc'):
-            os.remove('EEPROM.cc')
-        if os.path.isfile('EEPROM.cs'):
-            os.remove('EEPROM.cs')
+        if os.path.isfile('./config/EEPROM.cc'):
+            os.remove('./config/EEPROM.cc')
+        if os.path.isfile('./config/EEPROM.cs'):
+            os.remove('./config/EEPROM.cs')
 
     def storeSettings(self):
         """Write variables in cs class to EEPROM (file)."""
-        with open('EEPROM.cs', 'wb') as f:
+        with open('./config/EEPROM.cs', 'wb') as f:
             pickle.dump(vars(self.cs), f, pickle.HIGHEST_PROTOCOL)
         self.storedBeerSetting = self.cs.beerSetting
 
     def loadSettings(self):
         """Read variables in cs class from EEPROM (file)."""
-        with open('EEPROM.cs', 'rb') as f:
+        with open('./config/EEPROM.cs', 'rb') as f:
             data = pickle.load(f)
 
         self.cs.__dict__.update(data)

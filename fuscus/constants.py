@@ -49,7 +49,7 @@ from lcd_hardware import lcd2004_i2c
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', '-c',
                     nargs='?',
-                    default='fuscus.ini',
+                    default='./config/fuscus.ini',
                     help='configuration file name')
 
 args = parser.parse_args()
@@ -64,9 +64,9 @@ else:
     print("Config file {} not present, or is malformed. Did you copy the sample ini file and edit it?".format(args.config))
 
 calibration = configparser.ConfigParser()
-calibration.read('calibrate.ini')
+calibration.read('./config/calibrate.ini')
 if 'offset' in calibration:
-    print("Using calibration file 'calibrate.ini'")
+    print("Using calibration file './config/calibrate.ini'")
 else:
     print("No 'calibration.ini' file or no calibration values present.")
 

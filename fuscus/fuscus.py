@@ -3,7 +3,7 @@
 
 import logging
 
-logging.basicConfig(filename='fuscus.log', level=logging.DEBUG)
+logging.basicConfig(filename='./config/fuscus.log', level=logging.DEBUG)
 
 #
 # Copyright 2012-2013 BrewPi/Elco Jacobs.
