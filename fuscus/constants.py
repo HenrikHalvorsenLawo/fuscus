@@ -33,6 +33,13 @@ import mqttRelay
 import rotaryEncoder
 import tempControl
 
+running_on_pi = True
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    running_on_pi = False
+    print("Unable to import GPIO library, assume we're not running on a Pi")
+
 # LCD Hardware Modules
 from lcd_hardware import pcd8544
 from lcd_hardware import lcd2004_i2c
@@ -218,21 +225,22 @@ BACKLIGHT_BRIGHT_LEVEL = 50
 BACKLIGHT_DIM_LEVEL = 20
 
 # Global objects for our hardware devices
-DOOR = door.door(door_pin, door_open_state)
+if running_on_pi:
+    DOOR = door.door(door_pin, door_open_state)
 
-if rotary is not None:
-    encoder = rotaryEncoder.rotaryEncoder(rotary_A, rotary_B, rotary_PB)
-else:
-    encoder = rotaryEncoder.rotaryEncoder(0, 0, 0, dummy=True)
+    if rotary is not None:
+        encoder = rotaryEncoder.rotaryEncoder(rotary_A, rotary_B, rotary_PB)
+    else:
+        encoder = rotaryEncoder.rotaryEncoder(0, 0, 0, dummy=True)
 
-encoder.start()
+    encoder.start()
 
-if relay_HOT is not None:
+if relay_HOT is not None and running_on_pi:
     heater = relay.relay(relay_HOT, invert=invert_hot)
 else:
     heater = mqttRelay.mqttRelay(mqtt_broker, mqtt_hot_topic, mqtt_hot_message_ON, mqtt_hot_message_OFF)
 
-if relay_COLD is not None:
+if relay_COLD is not None and running_on_pi:
     cooler = relay.relay(relay_COLD, invert=invert_cold)
 else:
     cooler = mqttRelay.mqttRelay(mqtt_broker, mqtt_cold_topic, mqtt_cold_message_ON, mqtt_cold_message_OFF)
@@ -241,7 +249,8 @@ else:
 
 # Nokia LCD has 17 chars by 6 lines, but original display and web display
 # show 20 chars by 4 lines, so make a buffer at least that big.
-LCD = lcd.lcd(lines=6, chars=20, hardware=LCD_hardware)
+if running_on_pi:
+    LCD = lcd.lcd(lines=6, chars=20, hardware=LCD_hardware)
 
 tempControl = tempControl.tempController(ID_fridge, ID_beer, ID_ambient,
                                          cooler=cooler, heater=heater, door=DOOR)

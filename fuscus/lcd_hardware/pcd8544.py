@@ -28,7 +28,11 @@
 
 import time
 
-import RPi.GPIO as GPIO
+
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    print("Unable to import GPIO library, assume we're not running on a Pi")
 
 GPIO.setmode(GPIO.BOARD)
 

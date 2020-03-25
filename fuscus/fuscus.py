@@ -130,7 +130,10 @@ def loop():
 
 
 if __name__ == "__main__":
-    import RPi.GPIO as GPIO
+    try:
+        import RPi.GPIO as GPIO
+    except ImportError:
+        print("Unable to import GPIO library, assume we're not running on a Pi")
 
     logging.info('Started')
     signal.signal(signal.SIGTERM, killhandle)
