@@ -30,6 +30,7 @@ import yaml  # To get around brewpi's terse JSON
 import logging
 import termios
 import datetime
+import socket
 
 import ui
 from constants import *
@@ -44,61 +45,52 @@ STR_FMT_SET_TO = " set to %s "
 
 
 class piLink:
-    def __init__(self, tempControl, path, eepromManager):
+    def __init__(self, tempControl, eepromManager):
         # Set up a pty to accept serial input as if we are an Arduino
         # FIXME: Make this a socket interface.  The main brewpi code can send to a socket.
         # use port 25518 (beer 2 5 5 18)
-        os.setegid(20)
-        master, slave = pty.openpty()
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.bind("", port)
+        self.socket.listen()
+        self.socket.settimeout(0.5)
 
-        # Disable echoing on slave so we don't interpret status strings as commands
-        new_settings = termios.tcgetattr(slave)
-        new_settings[3] = new_settings[3] & ~termios.ECHO
-        termios.tcsetattr(slave, termios.TCSADRAIN, new_settings)
-
-        port_name = os.ttyname(slave)
-        os.chmod(port_name, 0o666)
-
-        # Create a new symlink for our instance, as the pty
-        # number can change each time.
-
-        # First, delete the symlink for our instance, in case
-        # we crashed last time.
-        if os.path.islink(path):
-            try:
-                os.unlink(path)
-            except Exception:
-                pass
-
-        os.symlink(port_name, path)
-
-        print("Listening on '%s' as '%s'" % (port_name, path))
-        self.f = os.fdopen(master, 'wb+', buffering=0)
-        self.portName = port_name
-        self.path = path
+        print("Listening on '%s'" % (port))
+        self.portName = str(port)
         self.buf = ''
+        self.connection = None
 
         self.tempControl = tempControl
         self.tempControl.piLink = self  # FIXME is this good practice?
         self.eepromManager = eepromManager
 
     def cleanup(self):
-        # Delete the symlink for our instance when we exit
-        if os.path.islink(self.path):
-            try:
-                os.unlink(self.path)
-            except Exception:
-                pass
+        # Close the socket
+        self.socket.close()
+
+    def acceptConnection(self):
+        incoming_ready, write, err  = select.select([self.socket], [], [])
+        if self.connection is None and incoming_ready:
+            self.connection, addr = self.socket.accept()
+            return True
+        else:
+            return False
 
     def updateBuffer(self):
         """ Fetch new data into the buffer and return the first character
         of the buffer
         """
-        ready_to_read, ready_to_write, in_error = select.select([self.f], [], [], 0)
-
         # read a byte and append it to the buffer
-        if ready_to_read:
-            self.buf += self.f.read(1).decode("utf-8")  # Convert byte to character
+        read_bytes = None
+        try:
+            read_bytes = self.socket.recv(1)
+        except socket.timeout:
+            return ''
+        except socket.error:
+            self.socket.close()
+            self.connection = None
+            return ''
+
+        self.buf += read_bytes.decode("utf-8")  # Convert byte to character
 
         # return a single byte (if there is one)
         inByte = self.buf[0:]
@@ -106,6 +98,11 @@ class piLink:
         return inByte
 
     def receive(self):
+
+        if self.connection is None:
+            if self.acceptConnection() is False:
+                print("No incoming connection yet")
+                return
 
         inByte = self.updateBuffer()
 
@@ -299,7 +296,7 @@ class piLink:
     #	pass
 
 
-    def debugMessage(message, *args):
+    def debugMessage(self, message, *args):
         # FIXME: This probably won't work either
         return 'D' + message % args + '\r\n'
 
