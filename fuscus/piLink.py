@@ -442,8 +442,7 @@ class piLink:
             self.tempControl.cc.tempSettingMax = float(newSettings[JSONKEY_tempSettingMax])
 
         if JSONKEY_pidMax in newSettings:
-            # self.tempControl.cc.pidMax = self.tempControl.temp_convert_to_internal(float(newSettings[JSONKEY_pidMax]), diff=True)
-            pass  # Not Implemented
+            self.tempControl.cc.pidMax = self.tempControl.temp_convert_to_internal(float(newSettings[JSONKEY_pidMax]), diff=True)
 
         # JSON_CONVERT(JSONKEY_Kp, &tempControl.cc.Kp, setStringToFixedPoint),
         # JSON_CONVERT(JSONKEY_Ki, &tempControl.cc.Ki, setStringToFixedPoint),
