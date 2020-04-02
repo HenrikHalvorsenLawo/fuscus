@@ -42,11 +42,12 @@ class sensor():
         self.temperature = None
         self.deviceID = -1
 
-        self._connection = mqtt.Client()
-        self._connection.connect(str(broker))
-        self._connection.message_callback_add(self.topic, self.topicUpdate)
-        result, self.mid = self._connection.subscribe(topic, 0)
-        self._connection.loop_start()
+        if self.topic is not None:
+            self._connection = mqtt.Client()
+            self._connection.connect(str(broker))
+            self._connection.message_callback_add(self.topic, self.topicUpdate)
+            result, self.mid = self._connection.subscribe(topic, 0)
+            self._connection.loop_start()
 
         # An indication of how stale the data is in the filters
         # Each time a read fails, this value is incremented.
@@ -88,9 +89,10 @@ class sensor():
         self.temperature = float(message.payload.decode("utf-8"))
         
     def join(self):
-        self._connection.unsubscribe(self.topic)
-        self._connection.loop_stop()
-        self._connection.disconnect()
+        if self.topic is not None:
+            self._connection.unsubscribe(self.topic)
+            self._connection.loop_stop()
+            self._connection.disconnect()
         return
 
     def update(self):

@@ -167,9 +167,9 @@ MQTT_hot_message_OFF = config['mqtt'].get('hot_message_off')
 MQTT_cold_topic = config['mqtt'].get('cold_topic')
 MQTT_cold_message_ON = config['mqtt'].get('cold_message_on')
 MQTT_cold_message_OFF = config['mqtt'].get('cold_message_off')
-MQTT_ambient = config['mqtt'].get('ambient_topic')
-MQTT_fridge = config['mqtt'].get('fridge_topic')
-MQTT_beer = config['mqtt'].get('beer_topic')
+MQTT_ambient = config['mqtt'].get('ambient_topic', None)
+MQTT_fridge = config['mqtt'].get('fridge_topic', None)
+MQTT_beer = config['mqtt'].get('beer_topic', None)
 
 # One-wire bus (implemented by external system) (1 GPIO + 3.3V + GND)
 one_wire = 7  # This number is for reference only
