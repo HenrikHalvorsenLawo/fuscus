@@ -124,7 +124,7 @@ class sensor():
             #	diff = (-27l << 16);
             # }
 
-            self.slopeFilter.add(1200 * diff)  # Multiply by 1200 (1h/4s), shift to single precision
+            self.slopeFilter.add(100 * diff)  # Multiply by 1200 (1h/4s), shift to single precision
             self.prevOutputForSlope = slowFilterOutput
             self.updateCounter = 3
 
@@ -154,11 +154,11 @@ class sensor():
     def setSlopeFilterCoefficients(self, b):
         self.slopeFilter.setCoefficients(b)
 
-    def hasSlowFilter():
+    def hasSlowFilter(self):
         return True
 
-    def hasFastFilter():
+    def hasFastFilter(self):
         return True
 
-    def hasSlopeFilter():
+    def hasSlopeFilter(self):
         return True
