@@ -49,8 +49,8 @@ MIN_COOL_OFF_TIME_FRIDGE_CONSTANT = 600
 # Set a minimum off time between switching between heating and cooling
 MIN_SWITCH_TIME = 600
 # Time allowed for peak detection
-COOL_PEAK_DETECT_TIME = 1800
-HEAT_PEAK_DETECT_TIME = 900
+COOL_PEAK_DETECT_TIME = 60
+HEAT_PEAK_DETECT_TIME = 60
 
 MODES = {'MODE_FRIDGE_CONSTANT': 'f',
          'MODE_BEER_CONSTANT': 'b',
@@ -368,8 +368,7 @@ class tempController:
                     if (self.cs.mode == MODES['MODE_FRIDGE_CONSTANT']):
                         self.updateWaitTime(MIN_COOL_OFF_TIME_FRIDGE_CONSTANT, sinceCooling)
                     else:
-                        if (beerFast < (
-                            self.cs.beerSetting + 0.03125)):  # + 16) ):	# If beer is already under target, stay/go to idle. 1/2 sensor bit idle zone
+                        if (beerFast < (self.cs.beerSetting + 0.03125)):  # + 16) ):	# If beer is already under target, stay/go to idle. 1/2 sensor bit idle zone
                             self.state = STATES['IDLE']  # beer is already colder than setting, stay in or go to idle
                         # break # FIXME: We need to skip the next if statement
                         else:
@@ -384,14 +383,12 @@ class tempController:
                     self.updateWaitTime(MIN_SWITCH_TIME, sinceCooling)
                     self.updateWaitTime(MIN_HEAT_OFF_TIME, sinceHeating)
                     if (self.cs.mode != MODES['MODE_FRIDGE_CONSTANT']):
-                        if (beerFast > (
-                            self.cs.beerSetting - 0.03125)):  # - 16)){ // If beer is already over target, stay/go to idle. 1/2 sensor bit idle zone
+                        if (beerFast > (self.cs.beerSetting - 0.03125)):  # - 16)){ // If beer is already over target, stay/go to idle. 1/2 sensor bit idle zone
                             self.state = STATES['IDLE']  # beer is already warmer than setting, stay in or go to idle
                         # break # FIXME: We need to skip the next if statement
                     # if(self.heater != &defaultActuator or (self.lightAsHeater and (self.light != &defaultActuator))):
                     # FIXME what is &defaultActuator ?
-                    if ((self.heater != None or
-                             (self.cc.lightAsHeater and (self.light != None)))):
+                    if ((self.heater != None or (self.cc.lightAsHeater and (self.light != None)))):
                         if (self.getWaitTime() > 0):
                             self.state = STATES['WAITING_TO_HEAT']
                         else:
@@ -400,8 +397,7 @@ class tempController:
                     self.state = STATES['IDLE']  # within IDLE range, always go to IDLE
                 # break
 
-            if (self.state == STATES['HEATING']
-                or self.state == STATES['COOLING']):
+            if (self.state == STATES['HEATING'] or self.state == STATES['COOLING']):
                 # If peak detect is not finished, but the fridge wants to switch to heat/cool
                 # Wait for peak detection and show on display
                 if self.doNegPeakDetect:
@@ -453,7 +449,7 @@ class tempController:
 
     def updateEstimatedPeak(self, timeLimit, estimator, sinceIdle):
         activeTime = min(timeLimit, sinceIdle)  # heat or cool time in seconds
-        estimatedOvershoot = (estimator * activeTime) / 3600  # overshoot estimator is in overshoot per hour
+        estimatedOvershoot = (estimator * activeTime) / 600  # overshoot estimator is in overshoot per 10m
         if (self.stateIsCooling()):
             estimatedOvershoot = -estimatedOvershoot  # when cooling subtract overshoot from fridge temperature
         self.cv.estimatedPeak = self.fridgeSensor.readFastFiltered() + estimatedOvershoot

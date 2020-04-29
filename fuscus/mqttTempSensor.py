@@ -55,7 +55,7 @@ class sensor():
         # delay, and on the first init.
 
         self.failedReadCount = 255
-        self.updateCounter = 255
+        self.updateCounter = 64
 
         self.fastFilter = FilterCascaded.CascadedFilter()
         self.slowFilter = FilterCascaded.CascadedFilter()
@@ -107,7 +107,6 @@ class sensor():
         # update slope filter every 3 samples.
         # averaged differences will give the slope. Use the slow filter as input
         self.updateCounter -= 1
-        # initialize first read for slope filter after (255-4) seconds. This
         # prevents an influence for the startup inaccuracy.
         if (self.updateCounter == 4):
             # only happens once after startup.
@@ -124,7 +123,7 @@ class sensor():
             #	diff = (-27l << 16);
             # }
 
-            self.slopeFilter.add(100 * diff)  # Multiply by 1200 (1h/4s), shift to single precision
+            self.slopeFilter.add(200 * diff)  # Multiply by 1200 (1h/4s), shift to single precision
             self.prevOutputForSlope = slowFilterOutput
             self.updateCounter = 3
 
