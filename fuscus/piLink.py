@@ -296,6 +296,8 @@ class piLink:
 
         temps['State'] = self.tempControl.getState()
 
+        temps['Pressure'] = self.tempControl.getPressure()
+
         self.connection.sendall(bytes('T:' + json.dumps(temps) + '\r\n', 'UTF-8'))
 
     def printBeerAnnotation(self, annotation):
