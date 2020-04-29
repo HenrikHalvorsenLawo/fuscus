@@ -40,14 +40,14 @@ MIN_COOL_OFF_TIME = 300
 # not lots of short bursts
 MIN_HEAT_OFF_TIME = 300
 # Minimum on time for the cooler.
-MIN_COOL_ON_TIME = 180
+MIN_COOL_ON_TIME = 60
 # Minimum on time for the heater.
-MIN_HEAT_ON_TIME = 180
+MIN_HEAT_ON_TIME = 60
 # Use a large minimum off time in fridge constant mode. No need for
 # very fast cycling.
 MIN_COOL_OFF_TIME_FRIDGE_CONSTANT = 600
 # Set a minimum off time between switching between heating and cooling
-MIN_SWITCH_TIME = 600
+MIN_SWITCH_TIME = 120
 # Time allowed for peak detection
 COOL_PEAK_DETECT_TIME = 60
 HEAT_PEAK_DETECT_TIME = 60
@@ -428,8 +428,7 @@ class tempController:
             self.doPosPeakDetect = True
             self.lastHeatTime = secs
             self.updateEstimatedPeak(self.cc.maxHeatTimeForEstimate, self.cs.heatEstimator, sinceIdle)
-            self.state = STATES[
-                'HEATING']  # reset to heating here, so the display of HEATING/HEATING_MIN_TIME is correct
+            self.state = STATES['HEATING']  # reset to heating here, so the display of HEATING/HEATING_MIN_TIME is correct
             # stop heating when estimated fridge temp peak lands on target or if beer is already too warm (1/2 sensor bit idle zone)
             if (self.cv.estimatedPeak >= self.cs.fridgeSetting
                 or (self.cs.mode != MODES['MODE_FRIDGE_CONSTANT']
@@ -482,6 +481,7 @@ class tempController:
 
             peak = self.fridgeSensor.detectPosPeak()
             estimate = self.cv.posPeakEstimate
+            print("peak %s : estimate %s" % (peak, estimate))
             # if peak is not None:	# FIXME: This could be moved into if statement below
             #	error = peak - estimate
             oldEstimator = self.cs.heatEstimator
