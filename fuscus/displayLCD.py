@@ -194,7 +194,7 @@ def printAllTemperatures():
     if (flags & LCD_FLAG_ALTERNATE_ROOM):
     #   bool displayRoom = ((ticks.seconds()&0x08)==0) && !BREWPI_SIMULATE && tempControl.ambientSensor->isConnected()
         displayRoom = (((int(ticks.seconds())&0x04)==0)
-                and tempControl.ambientSensor.deviceID is not None)
+                and (tempControl.ambientSensor.deviceID is not None or tempControl.ambientSensor.topic is not None))
         if (displayRoom ^ ((flags & LCD_FLAG_DISPLAY_ROOM)!=0)):    # transition
             flags = (flags | LCD_FLAG_DISPLAY_ROOM) if displayRoom else (flags & ~LCD_FLAG_DISPLAY_ROOM)
             printStationaryText()
