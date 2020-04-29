@@ -79,7 +79,7 @@ class sensor():
                 logging.debug("initializing filters with value %d", temp)
                 self.fastFilter.init(temp)
                 self.slowFilter.init(temp)
-                self.slopeFilter.init(2)
+                self.slopeFilter.init(0)
                 self.prevOutputForSlope = self.slowFilter.readOutput()
                 self.failedReadCount = 0
 
