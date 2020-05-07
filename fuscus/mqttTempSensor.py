@@ -123,7 +123,7 @@ class sensor():
             #	diff = (-27l << 16);
             # }
 
-            self.slopeFilter.add(100 * diff)  # Multiply by 1200 (1h/4s), shift to single precision
+            self.slopeFilter.add(300 * diff)  # Multiply by 1200 (1h/4s), shift to single precision
             self.prevOutputForSlope = slowFilterOutput
             self.updateCounter = 3
 
