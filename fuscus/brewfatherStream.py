@@ -19,16 +19,27 @@
 # along with Fuscus.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import json
 import requests
 import logging
+import paho.mqtt.client as mqtt
 
 class BrewfatherStream():
-    def __init__(self, streamId, name, tempController):
+    def __init__(self, streamId, name, tempController, MQTT_broker, MQTT_gravity):
         print("Creating stream " + name + " on ID " + streamId)
         self.id = streamId
         self.name = name
         self.controller = tempController
+        self.gravityTopic = MQTT_gravity
+        self.gravity
+        if self.gravityTopic is not None:
+            self._connection = mqtt.Client()
+            self._connection.connect(str(MQTT_broker))
+            self._connection.message_callback_add(self.gravityTopic, self.topicUpdate)
+            result, self.mid = self._connection.subscribe(MQTT_gravity, 0)
+            self._connection.loop_start()
+    
+    def topicUpdate(self, client, userdata, message):
+        self.gravity = float(message.payload.decode("utf-8"))
 
     def push(self):
         data = {
@@ -37,16 +48,15 @@ class BrewfatherStream():
             "aux_temp": self.controller.getFridgeTemp(),
             "ext_temp": self.controller.getRoomTemp(),
             "temp_unit": "C",
-            # "gravity": 1.000,
-            # "gravity_unit": "G",
-            # "pressure": 0,
-            # "pressure_unit": "PSI",
+            "gravity": self.gravity,
+            "gravity_unit": "G",
+            "pressure": 0,
+            "pressure_unit": "PSI",
             # "ph": 7,
             # "bpm": 0,
-            # "comment": "Fuscus",
+            "comment": "Fuscus",
             "beer": "BeerFridge Beer"
         }
-        jsonData = json.dumps(data)
         print("Pushing to Brewfather:")
         logging.debug(data)
         response = requests.post("http://log.brewfather.net/stream?id="+self.id, data=data)

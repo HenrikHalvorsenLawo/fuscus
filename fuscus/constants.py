@@ -273,4 +273,5 @@ piLink = piLink.piLink(tempControl=tempControl, port=port, eepromManager=eepromM
 
 brewfather_id = config['brewfather'].get('id', None)
 brewfather_name = config['brewfather'].get('name', None)
-brewfather = brewfatherStream.BrewfatherStream(brewfather_id, brewfather_name, tempControl)
+gravity_topic = config['brewfather'].get('gravity_topic', None)
+brewfather = brewfatherStream.BrewfatherStream(brewfather_id, brewfather_name, tempControl, MQTT_broker, gravity_topic)
