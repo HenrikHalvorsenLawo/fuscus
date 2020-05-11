@@ -24,13 +24,13 @@ import logging
 import paho.mqtt.client as mqtt
 
 class BrewfatherStream():
-    def __init__(self, streamId, name, tempController, MQTT_broker, MQTT_gravity):
+    def __init__(self, streamId, name, tempController, MQTT_broker=None, MQTT_gravity=None):
         print("Creating stream " + name + " on ID " + streamId)
         self.id = streamId
         self.name = name
         self.controller = tempController
         self.gravityTopic = MQTT_gravity
-        self.gravity
+        self.gravity = 1.0
         if self.gravityTopic is not None:
             self._connection = mqtt.Client()
             self._connection.connect(str(MQTT_broker))
@@ -48,15 +48,16 @@ class BrewfatherStream():
             "aux_temp": self.controller.getFridgeTemp(),
             "ext_temp": self.controller.getRoomTemp(),
             "temp_unit": "C",
-            "gravity": self.gravity,
-            "gravity_unit": "G",
-            "pressure": 0,
-            "pressure_unit": "PSI",
+            # "pressure": 0,
+            # "pressure_unit": "PSI",
             # "ph": 7,
             # "bpm": 0,
             "comment": "Fuscus",
             "beer": "BeerFridge Beer"
         }
+        if self.gravityTopic is not None:
+            data["gravity"] = self.gravity
+            data["gravity_unit"] = "G"
         print("Pushing to Brewfather:")
         logging.debug(data)
         response = requests.post("http://log.brewfather.net/stream?id="+self.id, data=data)
