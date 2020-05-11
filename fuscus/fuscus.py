@@ -85,6 +85,7 @@ def setup():
 def loop():
     '''Main loop.'''
     lastUpdate = -1  # initialise at -1 to update immediately
+    lastBrewfatherPush = -1 # initialise at -1 to update immediately
 
     oldState = None
 
@@ -124,6 +125,9 @@ def loop():
 
         # listen for incoming serial connections while waiting to update
         piLink.receive()
+
+        if (time.time() - lastBrewfatherPush > 900):
+            brewfather.push()
 
         time.sleep(0.05)  # Don't hog the processor
 

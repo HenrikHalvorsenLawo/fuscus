@@ -34,6 +34,7 @@ import relay
 import mqttRelay
 import rotaryEncoder
 import tempControl
+import brewfatherStream
 
 running_on_pi = True
 try:
@@ -251,7 +252,6 @@ else:
     cooler = mqttRelay.mqttRelay(MQTT_broker, MQTT_cold_topic, MQTT_cold_message_ON, MQTT_cold_message_OFF)
 
 
-
 # Nokia LCD has 17 chars by 6 lines, but original display and web display
 # show 20 chars by 4 lines, so make a buffer at least that big.
 LCD = lcd.lcd(lines=6, chars=20, hardware=LCD_hardware)
@@ -271,3 +271,7 @@ eepromManager = EepromManager.eepromManager(tempControl=tempControl)
 
 piLink = piLink.piLink(tempControl=tempControl, port=port, eepromManager=eepromManager, lcd=LCD)
 
+
+brewfather_id = config['brewfather'].get('id', None)
+brewfather_name = config['brewfather'].get('name', None)
+brewfather = brewfatherStream.BrewfatherStream(brewfather_id, brewfather_name, tempControl)
