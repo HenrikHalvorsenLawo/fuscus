@@ -271,7 +271,6 @@ eepromManager = EepromManager.eepromManager(tempControl=tempControl)
 
 piLink = piLink.piLink(tempControl=tempControl, port=port, eepromManager=eepromManager, lcd=LCD)
 
-
 brewfather_id = config['brewfather'].get('id', None)
 brewfather_name = config['brewfather'].get('name', None)
 brewfather = brewfatherStream.BrewfatherStream(brewfather_id, brewfather_name, tempControl)

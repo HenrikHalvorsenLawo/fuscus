@@ -24,6 +24,7 @@ import requests
 
 class BrewfatherStream():
     def __init__(self, streamId, name, tempController):
+        print("Creating stream " + name + "on ID " + streamId)
         self.id = streamId
         self.name = name
         self.controller = tempController

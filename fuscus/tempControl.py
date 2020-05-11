@@ -28,7 +28,6 @@ import ticks
 
 import tempSensor
 import mqttTempSensor
-import mqttPressureSensor
 
 import os.path
 
@@ -128,7 +127,7 @@ class ControlConstants:
 
 
 class tempController:
-    def __init__(self, ID_fridge=None, ID_beer=None, ID_ambient=None, MQTT_broker=None, MQTT_fridge=None, MQTT_beer=None, MQTT_ambient=None, cooler=None, heater=None, door=None, MQTT_pressure=None):
+    def __init__(self, ID_fridge=None, ID_beer=None, ID_ambient=None, MQTT_broker=None, MQTT_fridge=None, MQTT_beer=None, MQTT_ambient=None, cooler=None, heater=None, door=None):
         # We must have at least a fridge sensor
 
         self.cs = ControlSettings()
@@ -177,9 +176,6 @@ class tempController:
         else:
             self.ambientSensor = mqttTempSensor.sensor(MQTT_broker, MQTT_ambient)
 
-        if MQTT_pressure is not None:
-            self.pressureSensor = mqttPressureSensor.sensor(MQTT_broker, MQTT_ambient)
-
         self.beerSensor.init()
         self.fridgeSensor.init()
         self.ambientSensor.init()
@@ -214,7 +210,6 @@ class tempController:
     def updateTemperatures(self):
         self.updateSensor(self.beerSensor)
         self.updateSensor(self.fridgeSensor)
-        self.updateSensor(self.pressureSensor)
 
         # Read ambient sensor to keep the value up to date.
         # If no sensor is connected, this does nothing.
@@ -771,9 +766,6 @@ class tempController:
 
     def getRoomTemp(self):
         return self.ambientSensor.temperature
-
-    def getPressure(self):
-        return self.pressureSensor.pressure
 
     def getMode(self):
         return self.cs.mode
