@@ -37,17 +37,17 @@ class BrewfatherStream():
             "aux_temp": self.controller.getFridgeTemp(),
             "ext_temp": self.controller.getRoomTemp(),
             "temp_unit": "C",
-            "gravity": 1.000,
-            "gravity_unit": "G",
-            "pressure": 0,
-            "pressure_unit": "PSI",
-            "ph": 7,
-            "bpm": 0,
-            "comment": "Fuscus",
+            # "gravity": 1.000,
+            # "gravity_unit": "G",
+            # "pressure": 0,
+            # "pressure_unit": "PSI",
+            # "ph": 7,
+            # "bpm": 0,
+            # "comment": "Fuscus",
             "beer": "BeerFridge Beer"
         }
         jsonData = json.dumps(data)
         print("Pushing to Brewfather:")
-        logging.debug(jsonData)
-        response = requests.post("http://log.brewfather.net/stream?id="+self.id, json=jsonData)
+        logging.debug(data)
+        response = requests.post("http://log.brewfather.net/stream?id="+self.id, data=data)
         print("Status code: ", response.status_code)
