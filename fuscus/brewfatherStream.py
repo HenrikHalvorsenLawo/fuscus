@@ -24,7 +24,7 @@ import requests
 
 class BrewfatherStream():
     def __init__(self, streamId, name, tempController):
-        print("Creating stream " + name + "on ID " + streamId)
+        print("Creating stream " + name + " on ID " + streamId)
         self.id = streamId
         self.name = name
         self.controller = tempController
@@ -46,7 +46,7 @@ class BrewfatherStream():
             "beer": "BeerFridge Beer"
         }
         jsonData = json.dumps(data)
+        print("Pushing to Brewfather:")
+        print(jsonData)
         response = requests.post("http://log.brewfather.net/stream?id="+self.id, json=jsonData)
         print("Status code: ", response.status_code)
-        print("Printing Entire Post Request")
-        print(response.json())
