@@ -37,13 +37,13 @@ class BrewfatherStream():
             "aux_temp": self.controller.getFridgeTemp(),
             "ext_temp": self.controller.getRoomTemp(),
             "temp_unit": "C",
-            # "gravity": 1.042,
-            # "gravity_unit": "G", // G, P
-            # "pressure": 0,
-            # "pressure_unit": "PSI", // PSI, BAR, KPA
-            # "ph": 4.12,
-            # "bpm": 123, // Bubbles Per Minute
-            # "comment": "Hello World",
+            "gravity": 1.000,
+            "gravity_unit": "G",
+            "pressure": 0,
+            "pressure_unit": "PSI",
+            "ph": 7,
+            "bpm": 0,
+            "comment": "Fuscus",
             "beer": "BeerFridge Beer"
         }
         jsonData = json.dumps(data)
