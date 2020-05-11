@@ -128,6 +128,7 @@ def loop():
 
         if (time.time() - lastBrewfatherPush > 900):
             brewfather.push()
+            lastBrewfatherPush = round(time.time())
 
         time.sleep(0.05)  # Don't hog the processor
 
